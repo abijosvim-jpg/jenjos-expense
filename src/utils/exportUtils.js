@@ -1,0 +1,153 @@
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { formatCurrency, formatDate, getMonthFullLabel } from './formatters';
+import { getCategoryById } from './categories';
+
+// ── CSV Export ────────────────────────────────────────────────────────────────
+
+export const exportToCSV = (transactions, profile, monthKey) => {
+  const [year, month] = monthKey.split('-');
+  const monthName = getMonthFullLabel(parseInt(month) - 1);
+  const filename = `JENJOS_${profile}_${monthName}_${year}.csv`;
+
+  const headers = ['Date', 'Type', 'Category', 'Note', 'Amount'];
+  const rows = transactions.map((t) => {
+    const cat = getCategoryById(t.category, t.type);
+    return [
+      formatDate(t.date),
+      t.type.toUpperCase(),
+      cat.label,
+      `"${(t.note || '').replace(/"/g, '""')}"`,
+      t.type === 'expense' ? `-${t.amount}` : t.amount,
+    ];
+  });
+
+  const totalIncome = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const balance = totalIncome - totalExpense;
+
+  const csvContent = [
+    `JENJOS Expense Report — ${profile.charAt(0).toUpperCase() + profile.slice(1)} — ${monthName} ${year}`,
+    '',
+    headers.join(','),
+    ...rows.map((r) => r.join(',')),
+    '',
+    `Total Income,,,, ${totalIncome}`,
+    `Total Expense,,,, ${totalExpense}`,
+    `Net Balance,,,, ${balance}`,
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+// ── PDF Export ────────────────────────────────────────────────────────────────
+
+export const exportToPDF = (transactions, profile, monthKey) => {
+  const [year, month] = monthKey.split('-');
+  const monthName = getMonthFullLabel(parseInt(month) - 1);
+  const profileName = profile.charAt(0).toUpperCase() + profile.slice(1);
+  const filename = `JENJOS_${profileName}_${monthName}_${year}.pdf`;
+
+  const doc = new jsPDF();
+
+  // Header
+  doc.setFillColor(79, 70, 229);
+  doc.rect(0, 0, 210, 35, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('JENJOS', 14, 20);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Expense Report — ${profileName} — ${monthName} ${year}`, 14, 29);
+
+  // Summary boxes
+  const totalIncome = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const balance = totalIncome - totalExpense;
+
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+
+  const summaryY = 45;
+  const boxes = [
+    { label: 'Total Income', value: formatCurrency(totalIncome), color: [16, 185, 129] },
+    { label: 'Total Expense', value: formatCurrency(totalExpense), color: [239, 68, 68] },
+    { label: 'Net Balance', value: formatCurrency(balance), color: balance >= 0 ? [79, 70, 229] : [239, 68, 68] },
+  ];
+
+  boxes.forEach((box, i) => {
+    const x = 14 + i * 64;
+    doc.setFillColor(...box.color);
+    doc.roundedRect(x, summaryY, 58, 18, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(box.label, x + 4, summaryY + 7);
+    doc.setFontSize(11);
+    doc.text(box.value, x + 4, summaryY + 14);
+  });
+
+  // Table
+  doc.setTextColor(0, 0, 0);
+  doc.autoTable({
+    startY: summaryY + 26,
+    head: [['Date', 'Type', 'Category', 'Note', 'Amount']],
+    body: transactions.map((t) => {
+      const cat = getCategoryById(t.category, t.type);
+      return [
+        formatDate(t.date),
+        t.type.toUpperCase(),
+        cat.label,
+        t.note || '—',
+        formatCurrency(t.amount),
+      ];
+    }),
+    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    columnStyles: {
+      0: { cellWidth: 28 },
+      1: { cellWidth: 22 },
+      2: { cellWidth: 40 },
+      3: { cellWidth: 65 },
+      4: { cellWidth: 30, halign: 'right' },
+    },
+    styles: { fontSize: 9, cellPadding: 4 },
+    didDrawCell: (data) => {
+      if (data.section === 'body' && data.column.index === 1) {
+        const type = data.cell.raw;
+        if (type === 'EXPENSE') {
+          doc.setTextColor(239, 68, 68);
+        } else {
+          doc.setTextColor(16, 185, 129);
+        }
+        doc.setFontSize(9);
+        doc.text(type, data.cell.x + 2, data.cell.y + data.cell.height / 2 + 1);
+        doc.setTextColor(0, 0, 0);
+        return false;
+      }
+    },
+  });
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(
+      `Generated by JENJOS • Page ${i} of ${pageCount}`,
+      doc.internal.pageSize.getWidth() / 2,
+      doc.internal.pageSize.getHeight() - 10,
+      { align: 'center' }
+    );
+  }
+
+  doc.save(filename);
+};
