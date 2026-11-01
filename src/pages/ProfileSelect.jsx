@@ -73,7 +73,7 @@ const InkTitle = () => (
 
 
 /* ── Profile Select page ─────────────────────────────────────────────────── */
-export const ProfileSelect = () => {
+export const ProfileSelect = ({ onOpenMemories }) => {
   const { selectProfile } = useApp();
   const canvasRef = useRef(null);
 
@@ -165,6 +165,24 @@ export const ProfileSelect = () => {
             </motion.button>
           ))}
         </div>
+
+        {/* Our Moments link */}
+        {onOpenMemories && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 3.0 }}
+            onClick={onOpenMemories}
+            className="w-full mt-4 py-3 text-xs flex items-center justify-center gap-2 transition-colors"
+            style={{ color: '#444', letterSpacing: '0.05em' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#888'}
+            onMouseLeave={e => e.currentTarget.style.color = '#444'}
+          >
+            <span>💕</span>
+            <span>Our Moments</span>
+            <span style={{ fontSize: '10px' }}>→</span>
+          </motion.button>
+        )}
 
       </div>
     </div>

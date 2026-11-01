@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { Sun, Moon, LogOut, Download } from 'lucide-react';
+import { Sun, Moon, LogOut, Download, Heart } from 'lucide-react';
 import { exportAllData } from '../../firebase';
 import toast from 'react-hot-toast';
 
@@ -9,7 +9,7 @@ const PROFILES = {
   abijos: { name: 'Abijos', photo: '/jency.jpg' },
 };
 
-export const Navbar = () => {
+export const Navbar = ({ onOpenMemories }) => {
   const { activeProfile, darkMode, toggleDarkMode, goToProfile } = useApp();
   const profile = PROFILES[activeProfile];
 
@@ -61,6 +61,19 @@ export const Navbar = () => {
           >
             <Download size={14} strokeWidth={1.8} />
           </button>
+
+          {onOpenMemories && (
+            <button
+              onClick={onOpenMemories}
+              title="Our Moments"
+              className="p-2 rounded transition-colors"
+              style={{ color: 'var(--text-3)' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+            >
+              <Heart size={14} strokeWidth={1.8} />
+            </button>
+          )}
 
           <button
             onClick={toggleDarkMode}

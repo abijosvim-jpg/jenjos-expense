@@ -129,7 +129,7 @@ export const deleteSavingsGoal = (id)       => deleteDoc(doc(db, 'savings', id))
 // ── JSON backup helpers (kept for convenience) ───────────────────────────────
 
 export const exportAllData = async () => {
-  const cols = ['transactions', 'recurring', 'budgets', 'savings'];
+  const cols = ['transactions', 'recurring', 'budgets', 'savings', 'memories'];
   const result = {};
   for (const col of cols) {
     const snap = await getDocs(collection(db, col));
@@ -143,3 +143,19 @@ export const exportAllData = async () => {
   a.click();
   URL.revokeObjectURL(url);
 };
+
+// ── Memories ──────────────────────────────────────────────────────────────────
+
+export const subscribeToMemories = (callback) => {
+  const q = query(collection(db, 'memories'));
+  return onSnapshot(q, snap => {
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    docs.sort((a, b) => (b.date?.seconds ?? 0) - (a.date?.seconds ?? 0));
+    callback(docs);
+  });
+};
+
+export const addMemory    = (data) => addDoc(collection(db, 'memories'), { ...data, createdAt: _serverTimestamp() });
+export const updateMemory = (id, data) => updateDoc(doc(db, 'memories', id), data);
+export const deleteMemory = (id)       => deleteDoc(doc(db, 'memories', id));
+

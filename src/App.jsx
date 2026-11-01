@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { ProfileSelect } from './pages/ProfileSelect';
 import { Dashboard } from './pages/Dashboard';
+import { MemoriesPage } from './pages/MemoriesPage';
 import { isFirebaseConfigured } from './firebase';
 
 const FirebaseSetupBanner = () => (
@@ -22,9 +23,6 @@ const FirebaseSetupBanner = () => (
           <p>VITE_FIREBASE_MESSAGING_SENDER_ID=123456789</p>
           <p>VITE_FIREBASE_APP_ID=1:123:web:abc</p>
         </div>
-        <p className="text-xs" style={{ color: '#444', fontFamily: 'JetBrains Mono, monospace' }}>
-          See README.md for the full 5-step Firebase setup guide
-        </p>
       </div>
     </div>
   </div>
@@ -32,18 +30,23 @@ const FirebaseSetupBanner = () => (
 
 const AppContent = () => {
   const { activeProfile } = useApp();
+  const [page, setPage] = useState('home'); // 'home' | 'dashboard' | 'memories'
 
   if (!isFirebaseConfigured()) return <FirebaseSetupBanner />;
 
   return (
     <AnimatePresence mode="wait">
-      {!activeProfile ? (
+      {page === 'memories' ? (
+        <motion.div key="memories" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+          <MemoriesPage onBack={() => setPage('home')} activeProfile={activeProfile} />
+        </motion.div>
+      ) : !activeProfile ? (
         <motion.div key="select" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <ProfileSelect />
+          <ProfileSelect onOpenMemories={() => setPage('memories')} />
         </motion.div>
       ) : (
         <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <Dashboard />
+          <Dashboard onOpenMemories={() => setPage('memories')} />
         </motion.div>
       )}
     </AnimatePresence>
