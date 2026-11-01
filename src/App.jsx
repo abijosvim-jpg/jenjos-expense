@@ -5,6 +5,7 @@ import { AppProvider, useApp } from './contexts/AppContext';
 import { ProfileSelect } from './pages/ProfileSelect';
 import { Dashboard } from './pages/Dashboard';
 import { MemoriesPage } from './pages/MemoriesPage';
+import { ChecklistPage } from './pages/ChecklistPage';
 import { isFirebaseConfigured } from './firebase';
 
 const FirebaseSetupBanner = () => (
@@ -40,13 +41,23 @@ const AppContent = () => {
         <motion.div key="memories" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
           <MemoriesPage onBack={() => setPage('home')} activeProfile={activeProfile} />
         </motion.div>
+      ) : page === 'checklist' ? (
+        <motion.div key="checklist" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+          <ChecklistPage onBack={() => setPage(activeProfile ? 'dashboard' : 'home')} />
+        </motion.div>
       ) : !activeProfile ? (
         <motion.div key="select" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <ProfileSelect onOpenMemories={() => setPage('memories')} />
+          <ProfileSelect
+            onOpenMemories={() => setPage('memories')}
+            onOpenChecklist={() => setPage('checklist')}
+          />
         </motion.div>
       ) : (
         <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <Dashboard onOpenMemories={() => setPage('memories')} />
+          <Dashboard
+            onOpenMemories={() => setPage('memories')}
+            onOpenChecklist={() => setPage('checklist')}
+          />
         </motion.div>
       )}
     </AnimatePresence>

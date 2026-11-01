@@ -11,7 +11,7 @@ import { subscribeToTransactions } from '../firebase';
 import { Download } from 'lucide-react';
 import { SectionHeader } from '../components/ui';
 
-export const Dashboard = ({ onOpenMemories }) => {
+export const Dashboard = ({ onOpenMemories, onOpenChecklist }) => {
   const { activeProfile, selectedMonth } = useApp();
   const [transactions, setTransactions] = useState([]);
   const [showExport, setShowExport] = useState(false);
@@ -24,7 +24,7 @@ export const Dashboard = ({ onOpenMemories }) => {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
-      <Navbar onOpenMemories={onOpenMemories} />
+      <Navbar onOpenMemories={onOpenMemories} onOpenChecklist={onOpenChecklist} />
 
       <main className="max-w-5xl mx-auto px-4 pt-5 pb-10">
         <MonthSelector />

@@ -73,7 +73,7 @@ const InkTitle = () => (
 
 
 /* ── Profile Select page ─────────────────────────────────────────────────── */
-export const ProfileSelect = ({ onOpenMemories }) => {
+export const ProfileSelect = ({ onOpenMemories, onOpenChecklist }) => {
   const { selectProfile } = useApp();
   const canvasRef = useRef(null);
 
@@ -166,22 +166,34 @@ export const ProfileSelect = ({ onOpenMemories }) => {
           ))}
         </div>
 
-        {/* Our Moments link */}
-        {onOpenMemories && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 3.0 }}
-            onClick={onOpenMemories}
-            className="w-full mt-4 py-3 text-xs flex items-center justify-center gap-2 transition-colors"
-            style={{ color: '#444', letterSpacing: '0.05em' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#888'}
-            onMouseLeave={e => e.currentTarget.style.color = '#444'}
+        {/* Quick links */}
+        {(onOpenMemories || onOpenChecklist) && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 3.0 }}
+            className="flex gap-0 mt-4"
           >
-            <span>💕</span>
-            <span>Our Moments</span>
-            <span style={{ fontSize: '10px' }}>→</span>
-          </motion.button>
+            {onOpenMemories && (
+              <button onClick={onOpenMemories}
+                className="flex-1 py-3 text-xs flex items-center justify-center gap-1.5 transition-colors"
+                style={{ color: '#444' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#888'}
+                onMouseLeave={e => e.currentTarget.style.color = '#444'}>
+                <span>💕</span><span>Our Moments</span>
+              </button>
+            )}
+            {onOpenMemories && onOpenChecklist && (
+              <div className="w-px self-stretch my-2" style={{ background: '#222' }} />
+            )}
+            {onOpenChecklist && (
+              <button onClick={onOpenChecklist}
+                className="flex-1 py-3 text-xs flex items-center justify-center gap-1.5 transition-colors"
+                style={{ color: '#444' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#888'}
+                onMouseLeave={e => e.currentTarget.style.color = '#444'}>
+                <span>✅</span><span>Daily Checklist</span>
+              </button>
+            )}
+          </motion.div>
         )}
 
       </div>

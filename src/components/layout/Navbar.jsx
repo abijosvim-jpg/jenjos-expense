@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { Sun, Moon, LogOut, Download, Heart } from 'lucide-react';
+import { Sun, Moon, LogOut, Download, Heart, CheckSquare } from 'lucide-react';
 import { exportAllData } from '../../firebase';
 import toast from 'react-hot-toast';
 
@@ -9,7 +9,7 @@ const PROFILES = {
   abijos: { name: 'Abijos', photo: '/jency.jpg' },
 };
 
-export const Navbar = ({ onOpenMemories }) => {
+export const Navbar = ({ onOpenMemories, onOpenChecklist }) => {
   const { activeProfile, darkMode, toggleDarkMode, goToProfile } = useApp();
   const profile = PROFILES[activeProfile];
 
@@ -63,15 +63,20 @@ export const Navbar = ({ onOpenMemories }) => {
           </button>
 
           {onOpenMemories && (
-            <button
-              onClick={onOpenMemories}
-              title="Our Moments"
-              className="p-2 rounded transition-colors"
-              style={{ color: 'var(--text-3)' }}
+            <button onClick={onOpenMemories} title="Our Moments"
+              className="p-2 rounded transition-colors" style={{ color: 'var(--text-3)' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
-            >
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
               <Heart size={14} strokeWidth={1.8} />
+            </button>
+          )}
+
+          {onOpenChecklist && (
+            <button onClick={onOpenChecklist} title="Daily Checklist"
+              className="p-2 rounded transition-colors" style={{ color: 'var(--text-3)' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
+              <CheckSquare size={14} strokeWidth={1.8} />
             </button>
           )}
 

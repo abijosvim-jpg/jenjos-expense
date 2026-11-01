@@ -159,3 +159,34 @@ export const addMemory    = (data) => addDoc(collection(db, 'memories'), { ...da
 export const updateMemory = (id, data) => updateDoc(doc(db, 'memories', id), data);
 export const deleteMemory = (id)       => deleteDoc(doc(db, 'memories', id));
 
+// ── Daily Checklist ───────────────────────────────────────────────────────────
+
+// Subscribe to habit list
+export const subscribeToHabits = (callback) => {
+  const q = query(collection(db, 'checklist_habits'));
+  return onSnapshot(q, snap => {
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    docs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    callback(docs);
+  });
+};
+
+export const addHabit    = (data) => addDoc(collection(db, 'checklist_habits'), data);
+export const deleteHabit = (id)   => deleteDoc(doc(db, 'checklist_habits', id));
+
+// Get/set a day's record for a profile
+// Document ID = "YYYY-MM-DD_profile"
+export const getChecklistRecord = async (date, profile) => {
+  const snap = await getDoc(doc(db, 'checklist_records', `${date}_${profile}`));
+  return snap.exists() ? snap.data() : { checks: {} };
+};
+
+export const setChecklistRecord = (date, profile, checks) =>
+  setDoc(doc(db, 'checklist_records', `${date}_${profile}`), { date, profile, checks }, { merge: true });
+
+export const subscribeToChecklistRecord = (date, profile, callback) =>
+  onSnapshot(
+    doc(db, 'checklist_records', `${date}_${profile}`),
+    snap => callback(snap.exists() ? snap.data() : { checks: {} })
+  );
+
